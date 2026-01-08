@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yard-Sale Model on Hierarchical Networks</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --ink: #1a1a1a;
+            --paper: #f5f1e8;
+            --accent-red: #c41e3a;
+            --accent-blue: #2e5266;
+            --accent-gold: #d4af37;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: var(--paper);
+            color: var(--ink);
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .newspaper {
+            max-width: 1400px;
+            margin: 40px auto;
+            background: white;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 1px solid #ddd;
+        }
+        
+        .masthead {
+            border-bottom: 4px double var(--ink);
+            padding: 30px 40px 20px;
+            background: linear-gradient(to bottom, white 0%, var(--paper) 100%);
+        }
+        
+        .date-line {
+            text-align: center;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 4em;
+            font-weight: 900;
+            text-align: center;
+            line-height: 1;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+        
+        .tagline {
+            text-align: center;
+            font-size: 0.9em;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--ink);
+            padding-bottom: 10px;
+        }
+        
+        .deck {
+            text-align: center;
+            font-size: 1.1em;
+            line-height: 1.4;
+            padding: 15px 60px;
+            background: var(--paper);
+            border: 1px solid #ccc;
+            margin: 20px 40px;
+            font-family: 'Crimson Pro', serif;
+        }
+        
+        .controls-section {
+            padding: 30px 40px;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 24px,
+                #e8e8e8 24px,
+                #e8e8e8 25px
+            );
+            border-bottom: 2px solid var(--ink);
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .control-group {
+            background: white;
+            padding: 15px;
+            border: 2px solid var(--ink);
+            box-shadow: 3px 3px 0 var(--shadow);
+        }
+        
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+        
+        .value-display {
+            float: right;
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+        
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            background: var(--paper);
+            border: 1px solid var(--ink);
+            color: var(--ink);
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.95em;
+        }
+        
+        input[type="range"] {
+            cursor: pointer;
+            padding: 0;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--ink);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            cursor: pointer;
+            border: 2px solid var(--ink);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            cursor: pointer;
+            border: 2px solid var(--ink);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 35px;
+            font-size: 0.9em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 3px solid var(--ink);
+            cursor: pointer;
+            font-family: 'Courier Prime', monospace;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0 var(--shadow);
+            position: relative;
+        }
+        
+        button:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--shadow);
+        }
+        
+        button:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+        
+        .btn-start {
+            background: var(--accent-blue);
+            color: white;
+        }
+        
+        .btn-pause {
+            background: var(--accent-gold);
+            color: var(--ink);
+        }
+        
+        .btn-reset {
+            background: var(--accent-red);
+            color: white;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        
+        .article {
+            padding: 30px;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .article.full-width {
+            grid-column: 1 / -1;
+            border-right: none;
+        }
+        
+        .article-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        canvas {
+            width: 100%;
+            background: white;
+            border: 2px solid var(--ink);
+            display: block;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stats-banner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0;
+            border-top: 4px double var(--ink);
+            background: var(--paper);
+        }
+        
+        .stat-box {
+            padding: 25px;
+            text-align: center;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .stat-box:last-child {
+            border-right: none;
+        }
+        
+        .stat-label {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent-red);
+            font-family: 'Crimson Pro', serif;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--paper);
+            border: 1px solid #ccc;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+        }
+        
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--ink);
+        }
+        
+        .byline {
+            font-size: 0.85em;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .article {
+                border-right: none;
+            }
+            
+            h1 {
+                font-size: 3em;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .newspaper {
+                box-shadow: none;
+                border: none;
+            }
+            
+            button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newspaper">
+        <div class="masthead">
+            <div class="date-line">Network Economics Daily • Vol. 1</div>
+            <h1>Yard-Sale Model</h1>
+            <div class="tagline">Wealth Concentration in Hierarchical Networks</div>
+        </div>
+        
+        <div class="deck">
+            A mathematical model demonstrating how random trades between connected agents 
+            lead to extreme wealth inequality, even when starting from equal distribution
+        </div>
+        
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>Agents: <span class="value-display" id="nValue">64</span></label>
+                    <input type="number" id="numAgents" min="16" max="128" value="64" step="16">
+                </div>
+                
+                <div class="control-group">
+                    <label>Trade Fraction: <span class="value-display" id="betaValue">0.20</span></label>
+                    <input type="range" id="beta" min="0.05" max="0.5" step="0.05" value="0.20">
+                </div>
+                
+                <div class="control-group">
+                    <label>Hierarchy Depth: <span class="value-display" id="depthValue">4</span></label>
+                    <input type="range" id="hierarchyDepth" min="2" max="6" step="1" value="4">
+                </div>
+                
+                <div class="control-group">
+                    <label>Branch Factor: <span class="value-display" id="branchValue">3</span></label>
+                    <input type="range" id="branchFactor" min="2" max="5" step="1" value="3">
+                </div>
+                
+                <div class="control-group">
+                    <label>Simulation Speed: <span class="value-display" id="speedValue">20</span></label>
+                    <input type="range" id="speed" min="1" max="100" step="1" value="20">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-start" onclick="startSimulation()">Start</button>
+                <button class="btn-pause" onclick="pauseSimulation()">Pause</button>
+                <button class="btn-reset" onclick="resetSimulation()">Reset</button>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <div class="article full-width">
+                <h2 class="article-title">Network Visualization</h2>
+                <div class="byline">Real-time hierarchical structure showing wealth distribution across connected agents</div>
+                <canvas id="networkCanvas" height="500"></canvas>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8B0000;"></div>
+                        <span>Wealthiest 10%</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #CD5C5C;"></div>
+                        <span>Upper 20%</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #87CEEB;"></div>
+                        <span>Middle 40%</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4682B4;"></div>
+                        <span>Lower 30%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="article">
+                <h2 class="article-title">Wealth Distribution</h2>
+                <div class="byline">Each bar represents one agent's wealth, sorted by magnitude</div>
+                <canvas id="distributionChart" height="400"></canvas>
+            </div>
+            
+            <div class="article">
+                <h2 class="article-title">Inequality Metrics</h2>
+                <div class="byline">Tracking wealth concentration over time</div>
+                <canvas id="inequalityChart" height="400"></canvas>
+            </div>
+        </div>
+        
+        <div class="stats-banner">
+            <div class="stat-box">
+                <div class="stat-label">Time Steps</div>
+                <div class="stat-value" id="timeSteps">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Network Edges</div>
+                <div class="stat-value" id="edgeCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Gini Coefficient</div>
+                <div class="stat-value" id="gini">0.00</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Top 10% Share</div>
+                <div class="stat-value" id="top10">10%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Richest Agent</div>
+                <div class="stat-value" id="maxWealth">$1.0K</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simulation parameters
+        let N = 64;
+        let beta = 0.20;
+        let hierarchyDepth = 4;
+        let branchFactor = 3;
+        let speed = 20;
+        
+        // Simulation state
+        let wealth = [];
+        let adjacency = [];
+        let hierarchy = [];
+        let nodePositions = [];
+        let timeStep = 0;
+        let running = false;
+        let giniHistory = [];
+        let top10History = [];
+        const INITIAL_WEALTH = 1000;
+        const MAX_HISTORY = 150;
+        
+        // Canvas contexts
+        const networkCanvas = document.getElementById('networkCanvas');
+        const distCanvas = document.getElementById('distributionChart');
+        const ineqCanvas = document.getElementById('inequalityChart');
+        const netCtx = networkCanvas.getContext('2d');
+        const distCtx = distCanvas.getContext('2d');
+        const ineqCtx = ineqCanvas.getContext('2d');
+        
+        // Generate hierarchical network structure
+        function generateHierarchicalNetwork(n, depth, branch) {
+            const nodes = [];
+            const adj = Array(n).fill(0).map(() => Array(n).fill(0));
+            let nodeId = 0;
+            
+            // Build hierarchy tree
+            function buildTree(level, parentId = null) {
+                if (nodeId >= n || level > depth) return null;
+                
+                const node = {
+                    id: nodeId++,
+                    level: level,
+                    parent: parentId,
+                    children: []
+                };
+                
+                nodes.push(node);
+                
+                if (level < depth && nodeId < n) {
+                    const numChildren = Math.min(branch, n - nodeId);
+                    for (let i = 0; i < numChildren; i++) {
+                        const child = buildTree(level + 1, node.id);
+                        if (child) {
+                            node.children.push(child.id);
+                        }
+                    }
+                }
+                
+                return node;
+            }
+            
+            buildTree(0);
+            
+            // Create connections based on hierarchy
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                
+                // Connect to parent
+                if (node.parent !== null) {
+                    adj[node.id][node.parent] = 1;
+                    adj[node.parent][node.id] = 1;
+                }
+                
+                // Connect to siblings (same parent)
+                for (let j = 0; j < nodes.length; j++) {
+                    if (i !== j && nodes[j].parent === node.parent && node.parent !== null) {
+                        adj[node.id][nodes[j].id] = 1;
+                    }
+                }
+                
+                // Add some cross-level connections
+                for (let j = 0; j < nodes.length; j++) {
+                    if (i !== j && adj[node.id][nodes[j].id] === 0) {
+                        const levelDiff = Math.abs(nodes[j].level - node.level);
+                        if (levelDiff === 1 && Math.random() < 0.25) {
+                            adj[node.id][nodes[j].id] = 1;
+                            adj[nodes[j].id][node.id] = 1;
+                        } else if (levelDiff === 2 && Math.random() < 0.08) {
+                            adj[node.id][nodes[j].id] = 1;
+                            adj[nodes[j].id][node.id] = 1;
+                        }
+                    }
+                }
+            }
+            
+            // Pad if needed
+            while (nodes.length < n) {
+                nodes.push({
+                    id: nodes.length,
+                    level: depth,
+                    parent: null,
+                    children: []
+                });
+            }
+            
+            const edgeCount = adj.reduce((sum, row) => 
+                sum + row.reduce((rowSum, val) => rowSum + val, 0), 0) / 2;
+            
+            return { nodes, adj, edgeCount };
+        }
+        
+        // Position nodes hierarchically
+        function positionHierarchicalNodes(hierarchyNodes, width, height) {
+            const positions = [];
+            const levelGroups = {};
+            
+            // Group nodes by level
+            hierarchyNodes.forEach(node => {
+                if (!levelGroups[node.level]) {
+                    levelGroups[node.level] = [];
+                }
+                levelGroups[node.level].push(node.id);
+            });
+            
+            const numLevels = Object.keys(levelGroups).length;
+            const verticalSpacing = height / (numLevels + 1);
+            
+            // Position each level
+            Object.keys(levelGroups).forEach(level => {
+                const nodesInLevel = levelGroups[level];
+                const horizontalSpacing = width / (nodesInLevel.length + 1);
+                const y = verticalSpacing * (parseInt(level) + 1);
+                
+                nodesInLevel.forEach((nodeId, index) => {
+                    positions[nodeId] = {
+                        x: horizontalSpacing * (index + 1),
+                        y: y
+                    };
+                });
+            });
+            
+            return positions;
+        }
+        
+        // Initialize simulation
+        function initializeSimulation() {
+            N = parseInt(document.getElementById('numAgents').value);
+            beta = parseFloat(document.getElementById('beta').value);
+            hierarchyDepth = parseInt(document.getElementById('hierarchyDepth').value);
+            branchFactor = parseInt(document.getElementById('branchFactor').value);
+            speed = parseInt(document.getElementById('speed').value);
+            
+            wealth = new Array(N).fill(INITIAL_WEALTH);
+            const { nodes, adj, edgeCount } = generateHierarchicalNetwork(N, hierarchyDepth, branchFactor);
+            hierarchy = nodes;
+            adjacency = adj;
+            
+            const width = networkCanvas.offsetWidth;
+            const height = networkCanvas.offsetHeight;
+            networkCanvas.width = width;
+            networkCanvas.height = height;
+            distCanvas.width = distCanvas.offsetWidth;
+            distCanvas.height = distCanvas.offsetHeight;
+            ineqCanvas.width = ineqCanvas.offsetWidth;
+            ineqCanvas.height = ineqCanvas.offsetHeight;
+            
+            nodePositions = positionHierarchicalNodes(hierarchy, width, height);
+            
+            timeStep = 0;
+            giniHistory = [];
+            top10History = [];
+            
+            document.getElementById('edgeCount').textContent = edgeCount;
+            updateStats();
+            drawAll();
+        }
+        
+        // Get neighbors
+        function getNeighbors(nodeIndex) {
+            const neighbors = [];
+            for (let i = 0; i < N; i++) {
+                if (adjacency[nodeIndex][i] === 1) {
+                    neighbors.push(i);
+                }
+            }
+            return neighbors;
+        }
+        
+        // Classic Yard-Sale step
+        function yardSaleStep() {
+            // Pick random agent
+            const i = Math.floor(Math.random() * N);
+            const neighbors = getNeighbors(i);
+            
+            if (neighbors.length === 0) return;
+            
+            // Pick random neighbor
+            const j = neighbors[Math.floor(Math.random() * neighbors.length)];
+            
+            // Determine poorer agent
+            const poorer = wealth[i] < wealth[j] ? i : j;
+            const richer = wealth[i] < wealth[j] ? j : i;
+            
+            // Amount to exchange (fraction of poorer's wealth)
+            const amount = beta * wealth[poorer];
+            
+            // Fair coin flip - 50/50 chance
+            if (Math.random() < 0.5) {
+                wealth[poorer] += amount;
+                wealth[richer] -= amount;
+            } else {
+                wealth[poorer] -= amount;
+                wealth[richer] += amount;
+            }
+            
+            // Ensure non-negative
+            wealth[poorer] = Math.max(0, wealth[poorer]);
+            wealth[richer] = Math.max(0, wealth[richer]);
+            
+            timeStep++;
+        }
+        
+        // Calculate Gini coefficient
+        function calculateGini() {
+            const sorted = [...wealth].sort((a, b) => a - b);
+            const n = sorted.length;
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                sum += (2 * (i + 1) - n - 1) * sorted[i];
+            }
+            const totalWealth = sorted.reduce((a, b) => a + b, 0);
+            return totalWealth > 0 ? sum / (n * totalWealth) : 0;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const totalWealth = wealth.reduce((a, b) => a + b, 0);
+            const maxWealth = Math.max(...wealth);
+            const sorted = [...wealth].sort((a, b) => b - a);
+            const top10Count = Math.ceil(N * 0.1);
+            const top10Wealth = sorted.slice(0, top10Count).reduce((a, b) => a + b, 0);
+            const gini = calculateGini();
+            
+            document.getElementById('timeSteps').textContent = timeStep.toLocaleString();
+            document.getElementById('maxWealth').textContent = '$' + 
+                (maxWealth >= 1000 ? (maxWealth / 1000).toFixed(1) + 'K' : Math.round(maxWealth));
+            document.getElementById('gini').textContent = gini.toFixed(3);
+            document.getElementById('top10').textContent = 
+                ((top10Wealth / totalWealth) * 100).toFixed(1) + '%';
+            
+            // Track history
+            if (timeStep % 10 === 0) {
+                giniHistory.push(gini);
+                top10History.push(top10Wealth / totalWealth);
+                if (giniHistory.length > MAX_HISTORY) {
+                    giniHistory.shift();
+                    top10History.shift();
+                }
+            }
+        }
+        
+        // Draw network
+        function drawNetwork() {
+            const ctx = netCtx;
+            const width = networkCanvas.width;
+            const height = networkCanvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Get wealth ranking
+            const wealthRank = wealth.map((w, i) => ({ w, i }))
+                .sort((a, b) => b.w - a.w)
+                .map((item, rank) => ({ ...item, rank }));
+            
+            const rankMap = {};
+            wealthRank.forEach(item => {
+                rankMap[item.i] = item.rank;
+            });
+            
+            // Draw edges
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < N; i++) {
+                for (let j = i + 1; j < N; j++) {
+                    if (adjacency[i][j] === 1) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodePositions[i].x, nodePositions[i].y);
+                        ctx.lineTo(nodePositions[j].x, nodePositions[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Draw nodes
+            const maxWealth = Math.max(...wealth, 1);
+            const minRadius = 5;
+            const maxRadius = 18;
+            
+            for (let i = 0; i < N; i++) {
+                const rank = rankMap[i];
+                const pos = nodePositions[i];
+                const radius = minRadius + (maxRadius - minRadius) * (wealth[i] / maxWealth);
+                
+                // Color based on wealth percentile
+                let color;
+                if (rank < N * 0.1) {
+                    color = '#8B0000';  // Top 10% - Dark red
+                } else if (rank < N * 0.3) {
+                    color = '#CD5C5C';  // Top 30% - Indian red
+                } else if (rank < N * 0.7) {
+                    color = '#87CEEB';  // Middle 40% - Sky blue
+                } else {
+                    color = '#4682B4';  // Bottom 30% - Steel blue
+                }
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Draw distribution chart
+        function drawDistribution() {
+            const ctx = distCtx;
+            const width = distCanvas.width;
+            const height = distCanvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const margin = { left: 50, right: 20, top: 20, bottom: 40 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            const sorted = [...wealth].sort((a, b) => b - a);
+            const maxWealth = Math.max(...sorted, 100);
+            const barWidth = chartWidth / N;
+            
+            // Draw axes
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, height - margin.bottom);
+            ctx.lineTo(width - margin.right, height - margin.bottom);
+            ctx.stroke();
+            
+            // Y-axis labels
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = '11px Courier Prime';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const value = (maxWealth / 4) * i;
+                const y = height - margin.bottom - (chartHeight / 4) * i;
+                ctx.fillText('$' + Math.round(value), margin.left - 10, y + 4);
+            }
+            
+            // Draw bars
+            sorted.forEach((w, i) => {
+                const barHeight = (w / maxWealth) * chartHeight;
+                const x = margin.left + i * barWidth;
+                const y = height - margin.bottom - barHeight;
+                
+                // Color gradient
+                let color;
+                if (i < N * 0.1) {
+                    color = '#8B0000';
+                } else if (i < N * 0.3) {
+                    color = '#CD5C5C';
+                } else if (i < N * 0.7) {
+                    color = '#87CEEB';
+                } else {
+                    color = '#4682B4';
+                }
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, Math.max(1, barWidth - 1), barHeight);
+            });
+            
+            // X-axis label
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 12px Courier Prime';
+            ctx.textAlign = 'center';
+            ctx.fillText('Agents (ranked by wealth)', width / 2, height - 10);
+        }
+        
+        // Draw inequality chart
+        function drawInequality() {
+            const ctx = ineqCtx;
+            const width = ineqCanvas.width;
+            const height = ineqCanvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const margin = { left: 50, right: 20, top: 20, bottom: 40 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Draw axes
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, height - margin.bottom);
+            ctx.lineTo(width - margin.right, height - margin.bottom);
+            ctx.stroke();
+            
+            if (giniHistory.length < 2) {
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Courier Prime';
+                ctx.textAlign = 'center';
+                ctx.fillText('Collecting data...', width / 2, height / 2);
+                return;
+            }
+            
+            // Y-axis labels
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = '11px Courier Prime';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const value = 1.0 * i / 4;
+                const y = height - margin.bottom - (chartHeight * i / 4);
+                ctx.fillText(value.toFixed(2), margin.left - 10, y + 4);
+            }
+            
+            const xScale = chartWidth / Math.max(giniHistory.length - 1, 1);
+            
+            // Draw Gini coefficient line
+            ctx.strokeStyle = '#8B0000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            giniHistory.forEach((value, i) => {
+                const x = margin.left + i * xScale;
+                const y = height - margin.bottom - (value * chartHeight);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Draw top 10% share line
+            ctx.strokeStyle = '#4682B4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            top10History.forEach((value, i) => {
+                const x = margin.left + i * xScale;
+                const y = height - margin.bottom - (value * chartHeight);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Legend
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(margin.left + 10, margin.top + 10, 25, 3);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = '11px Courier Prime';
+            ctx.textAlign = 'left';
+            ctx.fillText('Gini Coefficient', margin.left + 40, margin.top + 14);
+            
+            ctx.fillStyle = '#4682B4';
+            ctx.fillRect(margin.left + 10, margin.top + 30, 25, 3);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillText('Top 10% Share', margin.left + 40, margin.top + 34);
+            
+            // X-axis label
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = 'bold 12px Courier Prime';
+            ctx.textAlign = 'center';
+            ctx.fillText('Time (× 10 steps)', width / 2, height - 10);
+        }
+        
+        function drawAll() {
+            drawNetwork();
+            drawDistribution();
+            drawInequality();
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!running) return;
+            
+            for (let i = 0; i < speed; i++) {
+                yardSaleStep();
+            }
+            
+            updateStats();
+            drawAll();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Control functions
+        function startSimulation() {
+            if (!running) {
+                running = true;
+                animate();
+            }
+        }
+        
+        function pauseSimulation() {
+            running = false;
+        }
+        
+        function resetSimulation() {
+            running = false;
+            initializeSimulation();
+        }
+        
+        // Event listeners
+        document.getElementById('numAgents').addEventListener('input', (e) => {
+            document.getElementById('nValue').textContent = e.target.value;
+        });
+        
+        document.getElementById('beta').addEventListener('input', (e) => {
+            beta = parseFloat(e.target.value);
+            document.getElementById('betaValue').textContent = beta.toFixed(2);
+        });
+        
+        document.getElementById('hierarchyDepth').addEventListener('input', (e) => {
+            document.getElementById('depthValue').textContent = e.target.value;
+        });
+        
+        document.getElementById('branchFactor').addEventListener('input', (e) => {
+            document.getElementById('branchValue').textContent = e.target.value;
+        });
+        
+        document.getElementById('speed').addEventListener('input', (e) => {
+            speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed;
+        });
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeSimulation();
+        });
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (!running) {
+                const width = networkCanvas.offsetWidth;
+                const height = networkCanvas.offsetHeight;
+                networkCanvas.width = width;
+                networkCanvas.height = height;
+                nodePositions = positionHierarchicalNodes(hierarchy, width, height);
+                drawAll();
+            }
+        });
+    </script>
+</body>
+</html>

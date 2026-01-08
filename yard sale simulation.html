@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yard-Sale Model Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        input[type="number"], input[type="range"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        input[type="range"] {
+            cursor: pointer;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-start {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-start:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-pause {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-pause:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+        
+        .btn-reset {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #667eea;
+            text-align: center;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 300px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 768px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yard-Sale Model Simulation</h1>
+        <p class="subtitle">Watch how wealth concentration emerges from fair random exchanges</p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="numAgents">Number of Agents (N):</label>
+                <input type="number" id="numAgents" min="10" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <label for="beta">Fraction Traded (β): <span id="betaValue">0.20</span></label>
+                <input type="range" id="beta" min="0.01" max="0.5" step="0.01" value="0.20">
+            </div>
+            <div class="control-group">
+                <label for="speed">Speed (steps/update): <span id="speedValue">10</span></label>
+                <input type="range" id="speed" min="1" max="100" step="1" value="10">
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-start" onclick="startSimulation()">Start</button>
+            <button class="btn-pause" onclick="pauseSimulation()">Pause</button>
+            <button class="btn-reset" onclick="resetSimulation()">Reset</button>
+        </div>
+        
+        <div class="charts">
+            <div class="chart-container">
+                <div class="chart-title">Wealth Distribution</div>
+                <canvas id="distributionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">Wealth Over Time (Top 10 Agents)</div>
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Time Steps</div>
+                <div class="stat-value" id="timeSteps">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Richest Agent Wealth</div>
+                <div class="stat-value" id="maxWealth">0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Gini Coefficient</div>
+                <div class="stat-value" id="gini">0.00</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Top 10% Share</div>
+                <div class="stat-value" id="top10">0%</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let N = 50;
+        let beta = 0.20;
+        let wealth = [];
+        let timeStep = 0;
+        let running = false;
+        let speed = 10;
+        let wealthHistory = [];
+        let maxHistoryLength = 100;
+        
+        const distributionCanvas = document.getElementById('distributionChart');
+        const timeCanvas = document.getElementById('timeChart');
+        const distCtx = distributionCanvas.getContext('2d');
+        const timeCtx = timeCanvas.getContext('2d');
+        
+        // Initialize
+        function initializeSimulation() {
+            N = parseInt(document.getElementById('numAgents').value);
+            beta = parseFloat(document.getElementById('beta').value);
+            wealth = new Array(N).fill(1.0);
+            timeStep = 0;
+            wealthHistory = [];
+            updateStats();
+            drawCharts();
+        }
+        
+        // Yard-sale step
+        function simulationStep() {
+            // Pick two random agents
+            const i = Math.floor(Math.random() * N);
+            let j = Math.floor(Math.random() * N);
+            while (j === i) {
+                j = Math.floor(Math.random() * N);
+            }
+            
+            // Determine poorer agent
+            const poorer = wealth[i] < wealth[j] ? i : j;
+            const richer = wealth[i] < wealth[j] ? j : i;
+            
+            // Amount to transfer
+            const amount = beta * wealth[poorer];
+            
+            // Fair coin flip
+            if (Math.random() < 0.5) {
+                wealth[poorer] += amount;
+                wealth[richer] -= amount;
+            } else {
+                wealth[poorer] -= amount;
+                wealth[richer] += amount;
+            }
+            
+            // Ensure non-negative wealth
+            wealth[poorer] = Math.max(0, wealth[poorer]);
+            wealth[richer] = Math.max(0, wealth[richer]);
+            
+            timeStep++;
+        }
+        
+        // Calculate Gini coefficient
+        function calculateGini() {
+            const sorted = [...wealth].sort((a, b) => a - b);
+            const n = sorted.length;
+            let sum = 0;
+            for (let i = 0; i < n; i++) {
+                sum += (2 * (i + 1) - n - 1) * sorted[i];
+            }
+            const totalWealth = sorted.reduce((a, b) => a + b, 0);
+            return sum / (n * totalWealth);
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const totalWealth = wealth.reduce((a, b) => a + b, 0);
+            const maxWealth = Math.max(...wealth);
+            const sorted = [...wealth].sort((a, b) => b - a);
+            const top10Count = Math.ceil(N * 0.1);
+            const top10Wealth = sorted.slice(0, top10Count).reduce((a, b) => a + b, 0);
+            
+            document.getElementById('timeSteps').textContent = timeStep;
+            document.getElementById('maxWealth').textContent = 
+                ((maxWealth / totalWealth) * 100).toFixed(1) + '%';
+            document.getElementById('gini').textContent = calculateGini().toFixed(3);
+            document.getElementById('top10').textContent = 
+                ((top10Wealth / totalWealth) * 100).toFixed(1) + '%';
+        }
+        
+        // Draw charts
+        function drawCharts() {
+            drawDistributionChart();
+            drawTimeChart();
+        }
+        
+        function drawDistributionChart() {
+            const canvas = distributionCanvas;
+            const ctx = distCtx;
+            const width = canvas.width = canvas.offsetWidth;
+            const height = canvas.height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Sort wealth
+            const sorted = [...wealth].sort((a, b) => b - a);
+            const maxWealth = Math.max(...sorted);
+            const barWidth = width / N;
+            
+            // Draw bars
+            sorted.forEach((w, i) => {
+                const barHeight = (w / maxWealth) * (height - 40);
+                const x = i * barWidth;
+                const y = height - barHeight - 20;
+                
+                const hue = 240 - (i / N) * 120;
+                ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                ctx.fillRect(x, y, barWidth - 1, barHeight);
+            });
+            
+            // Draw axis
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 20);
+            ctx.lineTo(width, height - 20);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Agents (sorted by wealth)', width / 2, height - 5);
+        }
+        
+        function drawTimeChart() {
+            const canvas = timeCanvas;
+            const ctx = timeCtx;
+            const width = canvas.width = canvas.offsetWidth;
+            const height = canvas.height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (wealthHistory.length < 2) return;
+            
+            const maxWealth = Math.max(...wealthHistory.flat());
+            const xScale = width / Math.max(wealthHistory.length - 1, 1);
+            const yScale = (height - 40) / maxWealth;
+            
+            // Draw lines for top 10 agents
+            const numLines = Math.min(10, N);
+            for (let agent = 0; agent < numLines; agent++) {
+                const hue = (agent / numLines) * 360;
+                ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                wealthHistory.forEach((snapshot, t) => {
+                    const sorted = [...snapshot].sort((a, b) => b - a);
+                    const x = t * xScale;
+                    const y = height - 20 - sorted[agent] * yScale;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+            }
+            
+            // Draw axis
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 20);
+            ctx.lineTo(width, height - 20);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Time', width / 2, height - 5);
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!running) return;
+            
+            for (let i = 0; i < speed; i++) {
+                simulationStep();
+            }
+            
+            // Record history
+            if (timeStep % 10 === 0) {
+                wealthHistory.push([...wealth]);
+                if (wealthHistory.length > maxHistoryLength) {
+                    wealthHistory.shift();
+                }
+            }
+            
+            updateStats();
+            drawCharts();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Control functions
+        function startSimulation() {
+            if (!running) {
+                running = true;
+                animate();
+            }
+        }
+        
+        function pauseSimulation() {
+            running = false;
+        }
+        
+        function resetSimulation() {
+            running = false;
+            initializeSimulation();
+        }
+        
+        // Event listeners
+        document.getElementById('beta').addEventListener('input', (e) => {
+            beta = parseFloat(e.target.value);
+            document.getElementById('betaValue').textContent = beta.toFixed(2);
+        });
+        
+        document.getElementById('speed').addEventListener('input', (e) => {
+            speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed;
+        });
+        
+        // Initialize on load
+        initializeSimulation();
+    </script>
+</body>
+</html>
